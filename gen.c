@@ -22,11 +22,11 @@ void fail(char *why) {
    exit(1);
 }
 
-void write_output(char *data, size_t len, int num) {
+void write_output(char *dpath, char *data, size_t len, int num) {
    char path[32];
    int fd;
    int wrote;
-   sprintf(path, "/tmp/libradamsa-%d.fuzz", num); 
+   sprintf(path, "%s/%d", dpath, num); 
    fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
    printf("Opened %s -> %d\n", path, fd);
    if (fd < 0) {
@@ -41,13 +41,14 @@ void write_output(char *data, size_t len, int num) {
    printf("Wrote %zu bytes to %s\n", len, path);
 }
 
+// prog <input> <outpath> <count>
 int main(int nargs, char **argv) {
    char *spath = argv[1];
    int fd = open(spath, O_RDONLY, 0);
    size_t len;
    char *input;
    char *output;
-   int seed = 0;
+   int count = atoi(argv[3]);
    if (fd < 0) {
       fail("cannot open input file");
    }
@@ -61,13 +62,12 @@ int main(int nargs, char **argv) {
    if (len != read(fd, input, len)) {
       fail("failed to read the entire sample at once");
    }
-   while(seed++ < 100) {
+   while(count--) {
       size_t n;
-      n = radamsa((uint8_t *) input, len, (uint8_t *) output, BUFSIZE, seed);
-      write_output(output, n, seed);
+      n = radamsa((uint8_t *) input, len, (uint8_t *) output, BUFSIZE, random());
+      write_output(argv[2], output, n, count);
       printf("Fuzzed %zu -> %zu bytes\n", len, n);
    }
-   printf("library test passed\n");
    free(output);
    free(input);
    return 0;
