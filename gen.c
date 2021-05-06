@@ -45,12 +45,18 @@ void write_output(char *dpath, char *data, size_t len, int num) {
 int main(int nargs, char **argv) {
    char *spath = argv[1];
    int fd = open(spath, O_RDONLY, 0);
+   int rd = open("/dev/urandom", O_RDONLY, 0);
    size_t len;
    char *input;
    char *output;
    int count = atoi(argv[3]);
    if (fd < 0) {
-      fail("cannot open input file");
+      printf("cannot open input file(%s)", spath);
+      return -1;
+   }
+   if ( rd < 0) {
+      printf("cannot open urandom.\n");
+      return -1;
    }
    len = filesize(spath);
    input = malloc(len);
@@ -62,14 +68,19 @@ int main(int nargs, char **argv) {
    if (len != read(fd, input, len)) {
       fail("failed to read the entire sample at once");
    }
+
    while(count--) {
       size_t n;
-      n = radamsa((uint8_t *) input, len, (uint8_t *) output, BUFSIZE, random());
+      int seed;
+      read(rd, &seed, sizeof(seed));
+      n = radamsa((uint8_t *) input, len, (uint8_t *) output, BUFSIZE, seed);
       write_output(argv[2], output, n, count);
       printf("Fuzzed %zu -> %zu bytes\n", len, n);
    }
    free(output);
    free(input);
+   close(fd);
+   close(rd);
    return 0;
 }
 
