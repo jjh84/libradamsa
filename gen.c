@@ -23,7 +23,7 @@ void fail(char *why) {
 }
 
 void write_output(char *dpath, char *data, size_t len, int num) {
-   char path[32];
+   char path[256];
    int fd;
    int wrote;
    sprintf(path, "%s/%d", dpath, num); 
