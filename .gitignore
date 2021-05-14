@@ -1,3 +1,4 @@
 *.a
 *.o
 libradamsa-test
+testcase-gen
