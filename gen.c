@@ -44,27 +44,39 @@ void write_output(char *dpath, char *data, size_t len, int num) {
 // prog <input> <outpath> <count>
 int main(int nargs, char **argv) {
    char *spath = argv[1];
-   int fd = open(spath, O_RDONLY, 0);
-   int rd = open("/dev/urandom", O_RDONLY, 0);
+   int fd, rd, count;
    size_t len;
-   char *input;
-   char *output;
-   int count = atoi(argv[3]);
+   char *input, *output;
+   
+   if(nargs<4) {
+      printf("usage: %s <seed-path> <output-path> <count>\n", argv[0]);
+      return 1;
+   }
+
+   fd = open(spath, O_RDONLY, 0);
+   rd = open("/dev/urandom", O_RDONLY, 0);
+   count = atoi(argv[3]);
+
    if (fd < 0) {
-      printf("cannot open input file(%s)", spath);
-      return -1;
+      perror("cannot open seed file:");
+      return 1;
    }
    if ( rd < 0) {
-      printf("cannot open urandom.\n");
-      return -1;
+      perror("cannot open urandom:");
+      return 1;
    }
+   
    len = filesize(spath);
+
    input = malloc(len);
    output = malloc(BUFSIZE);
+
    if (!input || !output) {
       fail("failed to allocate buffers\n");
    }
+
    init();
+
    if (len != read(fd, input, len)) {
       fail("failed to read the entire sample at once");
    }
@@ -77,6 +89,7 @@ int main(int nargs, char **argv) {
       write_output(argv[2], output, n, count);
       printf("Fuzzed %zu -> %zu bytes\n", len, n);
    }
+
    free(output);
    free(input);
    close(fd);
