@@ -26,7 +26,7 @@ void write_output(char *dpath, char *data, size_t len, int num) {
    char path[256];
    int fd;
    int wrote;
-   sprintf(path, "%s/%d", dpath, num); 
+   sprintf(path, "%s/%d.tc", dpath, num); 
    fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
    printf("Opened %s -> %d\n", path, fd);
    if (fd < 0) {
