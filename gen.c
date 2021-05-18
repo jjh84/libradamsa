@@ -28,17 +28,14 @@ void write_output(char *dpath, char *data, size_t len, int num) {
    int wrote;
    sprintf(path, "%s/%d.tc", dpath, num); 
    fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-   printf("Opened %s -> %d\n", path, fd);
    if (fd < 0) {
       fail("failed to open output file");
    }
    wrote = write(fd, data, len);
-   printf("wrote %d of %zu bytes\n", wrote, len);
    if (wrote != len) {
       fail("failed to write all of output at once");
    }
    close(fd);
-   printf("Wrote %zu bytes to %s\n", len, path);
 }
 
 // prog <input> <outpath> <count>
@@ -81,14 +78,17 @@ int main(int nargs, char **argv) {
       fail("failed to read the entire sample at once");
    }
 
+   fprintf(stderr, "[radamsa] generating testcases ... ");
+
    while(count--) {
       size_t n;
       int seed;
       read(rd, &seed, sizeof(seed));
       n = radamsa((uint8_t *) input, len, (uint8_t *) output, BUFSIZE, seed);
       write_output(argv[2], output, n, count);
-      printf("Fuzzed %zu -> %zu bytes\n", len, n);
    }
+
+   fprintf(stderr, "done\n");
 
    free(output);
    free(input);
@@ -96,4 +96,3 @@ int main(int nargs, char **argv) {
    close(rd);
    return 0;
 }
-
